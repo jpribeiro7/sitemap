@@ -26,6 +26,11 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+
+This REST-Api compiles all links from different sitemaps.
+It is built on Nest to force the MVC pattern.
+
+
 ## Installation
 
 ```bash
@@ -58,7 +63,15 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-## Usage
+## Port
+It runs on port 3000
+
+## Routes
+
+The only available route is /sitemap.
+It receives url as a query parameter
+
+Example:
 ```bash
 # get sitemap
 $ GET localhost:3000/sitemap?url=example_url
