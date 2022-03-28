@@ -11,7 +11,6 @@ export class AppController {
       return res.status(400).send(`Bad Request: no url parameter found`)
     }
     const response  = await this.appService.getSitemap(params.url);
-    console.log(response.message)
     return res.status(response.status).send(response.message)
   }
 }

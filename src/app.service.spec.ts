@@ -34,6 +34,7 @@ describe('AppService', () => {
                     response = await appService.getSitemap(host)
                     expect(response).toEqual({ status: 400 , message: 'Bad Request: url parameter has no valid domain'})
                 });
+                
 
                 test('should return host not found', async () => {
                     let host = "https://pcdiga";

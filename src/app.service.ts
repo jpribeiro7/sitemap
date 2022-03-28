@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { rejects } from 'assert';
-import { resolve } from 'path/posix';
 import Sitemapper from 'sitemapper';
+const Crawler = require('node-html-crawler');
 const robotsParser = require('robots-txt-parser');
+
 
 @Injectable()
 export class AppService {
@@ -14,7 +14,8 @@ export class AppService {
   //And it can also be defined in robots.txt file. Inside this file, there can also be some sitemap files defined
   //It is also possible that the website has both (ex: https://www.bbc.com/sitemap.xml && https://www.bbc.com/robots.txt)
   async getSitemap(url: string): Promise<Record<string, any>> {
-
+    
+    
     //extract domain and validate it 
     let final_url;
     try{
@@ -22,14 +23,35 @@ export class AppService {
     }catch(error){
       return {status:400, message: 'Bad Request: url parameter has no valid domain'}
     }
+
+    //gathers all urls defined in different sitemaps
+    let all_urls = new Set();
+
+    //crawls all websites in the html page
+    let html_crawler = new Promise<void>( function(resolve,reject){
+      const crawler = new Crawler(final_url.host.replace('www.',''))
+      crawler.crawl();
+      //on gathering data, add it to set
+      crawler.on('data', (data) => {
+        if (data.result.statusCode === 200 && data.url.includes(final_url.hostname)){
+          all_urls.add(data.url)
+        }})
+      
+      //handle errors
+      crawler.on('error', (error) => {
+        reject();
+      //resolve when crawler ends
+      crawler.on('end', () => {
+        resolve();
+    });
+
     //init robot.txt parser
     const robots = robotsParser();
 
     //search for sitemaps in robot.txt file
     const from_robots = await robots.useRobotsFor(`${url}/robots.txt`)
       .then(async (robots_txt) => {
-        //gathers all urls defined in different sitemaps
-        let all_urls = new Set();
+        
 
         //if there are any sitemaps in robots.txt
         robots_txt.sitemaps.forEach((entry)=>{
@@ -45,6 +67,9 @@ export class AppService {
         
         //array of promises
         let p =[]
+
+        //add crawler to promises to be resolved
+        p.push(html_crawler)
 
         //one website can have multiple sitemaps
         //for every sitemap available
@@ -89,4 +114,5 @@ export class AppService {
       return {status:from_robots.status, message: from_robots.message}
      
   }
+
 }
